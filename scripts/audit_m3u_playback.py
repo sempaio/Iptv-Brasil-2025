@@ -15,6 +15,7 @@ SOURCES = [f"Lista BR {i:02d}.m3u8" for i in range(1, 9)]
 EXTERNAL = {
     "CanaisBR04": "https://raw.githubusercontent.com/Ramys/Iptv-Brasil-2026/master/CanaisBR04.m3u8",
     "CanaisBR05": "https://raw.githubusercontent.com/Ramys/Iptv-Brasil-2026/master/CanaisBR05.m3u8",
+    "Pluto_Brasil_publico": "https://panel.taila5c5c2.ts.net/iptv/pluto/plutotv_br.m3u",
 }
 HEADERS = {"User-Agent": "STARLINK-IPTV-source-health-audit/1.0", "Range": "bytes=0-2047"}
 TIMEOUT = 9
@@ -41,11 +42,11 @@ class PublicRedirects(HTTPRedirectHandler):
 
 OPENER = build_opener(PublicRedirects())
 
-def read_url(url, limit=2048):
+def read_url(url, limit=2048, use_range=True):
     if not allowed(url):
         return "unsafe_or_dns", b"", "", ""
     try:
-        with OPENER.open(Request(url, headers=HEADERS), timeout=TIMEOUT) as response:
+        with OPENER.open(Request(url, headers=HEADERS if use_range else {"User-Agent": HEADERS["User-Agent"]}), timeout=TIMEOUT) as response:
             if not allowed(response.geturl()):
                 return "unsafe_redirect", b"", "", ""
             return str(response.status), response.read(limit), response.headers.get("Content-Type", "").lower(), response.geturl()
@@ -112,7 +113,7 @@ def audit():
     report = []
     for name in SOURCES:
         url = REPO_BASE + quote(name)
-        code, data, _, _ = read_url(url, limit=300000)
+        code, data, _, _ = read_url(url, limit=300000, use_range=False)
         streams, syntax = parse_streams(data)
         row = {"source": name, "playlist_status": code,
                "m3u_syntax": syntax, "entries": len(streams), "unique_urls": len(set(streams)),
