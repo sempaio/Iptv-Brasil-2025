@@ -1,0 +1,16 @@
+name: Auditoria pontual de fontes M3U
+on:
+  push:
+    branches: [audit/iptv-fontes-20261029]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 7
+    steps:
+      - name: Checkout audit only
+        uses: actions/checkout@v4
+      - name: Test public playlist and media byte ranges
+        run: python3 scripts/audit_m3u_playback.py
