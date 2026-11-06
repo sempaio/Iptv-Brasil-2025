@@ -1,16 +1,44 @@
-name: Auditoria pontual de fontes M3U
+name: Auditoria segura de fontes M3U e HTTP 403
+
 on:
   push:
-    branches: [audit/iptv-fontes-20261029]
+    branches: [audit/iptv-fontes-20261029, feat/iptv-auditoria-403-recuperacao-20261106]
+    paths:
+      - ".github/workflows/auditoria-fontes-m3u.yml"
+      - "scripts/audit_m3u_playback.py"
+      - "tests/test_audit_m3u.py"
   workflow_dispatch:
+  # O agendamento funciona apenas quando este workflow estiver na branch padrão.
+  schedule:
+    - cron: "23 */6 * * *"
+
 permissions:
   contents: read
+
+concurrency:
+  group: m3u-audit-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   probe:
+    name: Validar scripts e verificar transmissões (somente leitura)
     runs-on: ubuntu-24.04
-    timeout-minutes: 7
+    timeout-minutes: 15
     steps:
       - name: Checkout audit only
         uses: actions/checkout@v4
-      - name: Test public playlist and media byte ranges
+
+      - name: Regressões do parser HTTP, 403, HLS e privacidade
+        run: python3 -m unittest discover -s tests -p 'test_audit_m3u.py' -v
+
+      - name: Auditar fontes 2025 e BR04 2026 com mídia validada
         run: python3 scripts/audit_m3u_playback.py
+
+      - name: Salvar relatório sem URLs nem credenciais
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: relatorio-ip-tv-sanitizado
+          path: source-audit-report.json
+          retention-days: 7
+          if-no-files-found: ignore
