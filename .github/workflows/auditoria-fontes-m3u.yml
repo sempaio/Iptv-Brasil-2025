@@ -2,11 +2,12 @@ name: Auditoria segura de fontes M3U e HTTP 403
 
 on:
   push:
-    branches: [audit/iptv-fontes-20261029, feat/iptv-auditoria-403-recuperacao-20261106]
+    branches: [master, audit/iptv-fontes-20261029]
     paths:
       - ".github/workflows/auditoria-fontes-m3u.yml"
       - "scripts/audit_m3u_playback.py"
       - "tests/test_audit_m3u.py"
+      - "Lista BR *.m3u8"
   workflow_dispatch:
   # O agendamento funciona apenas quando este workflow estiver na branch padrão.
   schedule:
