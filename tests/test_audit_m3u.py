@@ -84,6 +84,10 @@ class AuditM3UTests(unittest.TestCase):
         self.assertNotIn("username", serialized)
         self.assertEqual(report["sample_results"]["HTTP_403"], 3)
 
+    def test_pluto_channels_with_no_group_are_still_audited(self):
+        self.assertTrue(audit._is_live("Canal Pluto sem categoria", "", "Pluto_Brasil_publico"))
+        self.assertFalse(audit._is_live("Filme qualquer", "Filmes", "CanaisBR04_2026"))
+
     def test_mpeg_ts_needs_more_than_a_single_sync_byte(self):
         self.assertEqual(audit.media_state(b'\x47' + b'\x00' * 2047, "application/octet-stream"), "unrecognized_200")
         self.assertEqual(audit.media_state((b'\x47' + b'\x00' * 187) * 3, "video/mp2t"), "media_bytes")

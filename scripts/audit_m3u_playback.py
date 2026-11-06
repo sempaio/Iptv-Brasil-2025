@@ -196,11 +196,11 @@ def make_public_report(source, *, playlist_status, entries, unique_urls, results
     }
 
 
-def _is_live(title, category):
+def _is_live(title, category, source=""):
     group = category.casefold()
     normalized = title.casefold()
     return (
-        "canais" in group or "tv ao vivo" in group or "live" in group
+        source == "Pluto_Brasil_publico" or "canais" in group or "tv ao vivo" in group or "live" in group
         or any(key in normalized for key in GROUPS)
     )
 
@@ -246,7 +246,7 @@ def audit():
             for title, stream_url, category in iter_entries(data):
                 entry_count += 1
                 distinct.add(stream_url)
-                if _is_live(title, category):
+                if _is_live(title, category, name):
                     stream_candidates.append((title, stream_url))
             unique_count = len(distinct)
             del distinct
